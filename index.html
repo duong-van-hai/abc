@@ -1,438 +1,183 @@
-import React, { useState, useEffect } from 'react';
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm tra Công nghệ 11</title>
+    <style>
+        :root { --p: #2563eb; --s: #16a34a; --e: #dc2626; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        .timer-bar { position: fixed; top: 0; left: 0; width: 100%; background: #1e293b; color: #fbbf24; text-align: center; padding: 12px 0; font-size: 1.3rem; font-weight: bold; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .container { max-width: 850px; margin: 80px auto 40px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .section-header { background: #eff6ff; color: var(--p); padding: 15px; border-radius: 8px; margin: 30px 0 20px; border-left: 6px solid var(--p); font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
+        .q-box { margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+        .opt { display: flex; align-items: center; padding: 12px; border: 1px solid #f1f5f9; margin: 8px 0; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .opt:hover { background: #f8fafc; border-color: var(--p); }
+        input { margin-right: 15px; transform: scale(1.3); cursor: pointer; }
+        .btn { width: 100%; padding: 20px; background: var(--p); color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn:hover { background: #1d4ed8; transform: translateY(-2px); }
+        
+        /* Kết quả & Review */
+        .res-area { display: none; }
+        .score-card { text-align: center; padding: 40px; border-radius: 15px; background: #f0fdf4; border: 2px solid var(--s); margin-bottom: 30px; }
+        .score-num { font-size: 4rem; color: var(--p); font-weight: 800; margin: 10px 0; }
+        .review-q-item { background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .review-opt { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #eee; font-size: 0.95rem; }
+        .opt-correct { background: #dcfce7; border-color: var(--s); color: #166534; font-weight: bold; }
+        .opt-wrong { background: #fee2e2; border-color: var(--e); color: #991b1b; }
+        .status-tag { font-weight: bold; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 10px; display: block; }
+    </style>
+</head>
+<body>
 
-// Dữ liệu mẫu cho ứng dụng
-const DATA = {
-  theories: [
-    {
-      id: 1,
-      title: "Hệ Mặt Trời",
-      content: "Hệ Mặt Trời bao gồm Mặt Trời và các thiên thể quay quanh nó, bao gồm 8 hành tinh: Thủy tinh, Kim tinh, Trái Đất, Hỏa tinh, Mộc tinh, Thổ tinh, Thiên Vương tinh và Hải Vương tinh.",
-      icon: "☀️"
-    },
-    {
-      id: 2,
-      title: "Quang hợp là gì?",
-      content: "Quang hợp là quá trình thực vật sử dụng năng lượng ánh sáng mặt trời để tổng hợp chất hữu cơ từ khí cacbonic và nước, đồng thời giải phóng khí oxy.",
-      icon: "🌱"
-    },
-    {
-      id: 3,
-      title: "Nước và sự sống",
-      content: "Nước chiếm khoảng 70% bề mặt Trái Đất và khoảng 60-70% trọng lượng cơ thể con người. Nước là dung môi hòa tan nhiều chất dinh dưỡng cần thiết cho cơ thể.",
-      icon: "💧"
-    }
-  ],
-  quiz: [
-    {
-      id: 1,
-      question: "Hành tinh nào gần Mặt Trời nhất?",
-      options: ["Trái Đất", "Thủy Tinh", "Hỏa Tinh", "Kim Tinh"],
-      correct: 1 // Index of correct answer
-    },
-    {
-      id: 2,
-      question: "Động vật nào sau đây là loài lưỡng cư?",
-      options: ["Cá sấu", "Ếch", "Rắn", "Thằn lằn"],
-      correct: 1
-    },
-    {
-      id: 3,
-      question: "Công thức hóa học của nước là gì?",
-      options: ["HO", "H2O", "O2H", "CO2"],
-      correct: 1
-    },
-    {
-      id: 4,
-      question: "Việt Nam nằm ở châu lục nào?",
-      options: ["Châu Âu", "Châu Mỹ", "Châu Á", "Châu Phi"],
-      correct: 2
-    }
-  ],
-  explore: [
-    {
-      title: "Bạn có biết?",
-      text: "Mật ong là loại thực phẩm duy nhất không bao giờ bị hỏng. Người ta đã tìm thấy mật ong trong các ngôi mộ Ai Cập cổ đại vẫn còn ăn được!",
-      color: "bg-orange-100 border-orange-300 text-orange-800"
-    },
-    {
-      title: "Kỷ lục thế giới",
-      text: "Loài động vật lớn nhất hành tinh là Cá voi xanh. Trái tim của nó lớn đến mức một con người có thể bơi trong các động mạch!",
-      color: "bg-blue-100 border-blue-300 text-blue-800"
-    },
-    {
-      title: "Vũ trụ bao la",
-      text: "Một ngày trên sao Kim dài hơn một năm trên sao Kim. Nó quay quanh trục của mình chậm hơn quay quanh Mặt Trời.",
-      color: "bg-purple-100 border-purple-300 text-purple-800"
-    }
-  ]
-};
+<div class="timer-bar" id="timer">THỜI GIAN CÒN LẠI: 15:00</div>
 
-// Component: SVG Icons để không phụ thuộc thư viện ngoài
-const Icons = {
-  Book: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-blue-500">
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-    </svg>
-  ),
-  Check: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-green-500">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    </svg>
-  ),
-  Compass: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 text-purple-500">
-      <circle cx="12" cy="12" r="10"></circle>
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-    </svg>
-  ),
-  Back: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12"></line>
-      <polyline points="12 19 5 12 12 5"></polyline>
-    </svg>
-  ),
-  User: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-      <circle cx="12" cy="7" r="4"></circle>
-    </svg>
-  ),
-  LogOut: () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-      <polyline points="16 17 21 12 16 7"></polyline>
-      <line x1="21" y1="12" x2="9" y2="12"></line>
-    </svg>
-  )
-};
-
-export default function App() {
-  // --- STATE DECLARATIONS ---
-  // IMPORTANT: All useState hooks must be at the top level, never inside if/else blocks
-  const [user, setUser] = useState(null);
-  const [currentView, setCurrentView] = useState('login'); // login, dashboard, theory, quiz, explore
-  const [formData, setFormData] = useState({ name: '', classRoom: '' });
-
-  // Quiz State (Moved here to fix React Hook Rules)
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
-
-  // --- HANDLERS ---
-  
-  // Login handler
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (formData.name && formData.classRoom) {
-      setUser(formData);
-      setCurrentView('dashboard');
-    }
-  };
-
-  // Quiz Logic Handlers
-  const handleAnswer = (optionIndex) => {
-    setSelectedOption(optionIndex);
-    
-    // Delay to show selection effect before moving next
-    setTimeout(() => {
-      if (optionIndex === DATA.quiz[currentQuestion].correct) {
-        setScore(prevScore => prevScore + 1);
-      }
-      
-      if (currentQuestion + 1 < DATA.quiz.length) {
-        setCurrentQuestion(prevQ => prevQ + 1);
-        setSelectedOption(null);
-      } else {
-        setShowResult(true);
-      }
-    }, 500);
-  };
-
-  const resetQuiz = () => {
-    setCurrentQuestion(0);
-    setScore(0);
-    setShowResult(false);
-    setSelectedOption(null);
-  };
-
-  // --- RENDER HELPERS ---
-
-  // Header Component
-  const Header = () => (
-    <div className="bg-white shadow-sm sticky top-0 z-10">
-      <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          {currentView !== 'dashboard' && (
-            <button 
-              onClick={() => setCurrentView('dashboard')}
-              className="p-2 hover:bg-gray-100 rounded-full mr-2 transition-colors"
-            >
-              <Icons.Back />
-            </button>
-          )}
-          <div className="flex flex-col">
-            <span className="font-bold text-gray-800 text-lg flex items-center gap-2">
-               Xin chào, {user.name}
-            </span>
-            <span className="text-xs text-gray-500 font-medium bg-blue-100 px-2 py-0.5 rounded-full w-fit">
-              Lớp {user.classRoom}
-            </span>
-          </div>
-        </div>
-        <button 
-          onClick={() => {
-            setUser(null);
-            setCurrentView('login');
-            setFormData({ name: '', classRoom: '' });
-            resetQuiz(); // Reset quiz state on logout
-          }}
-          className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
-        >
-          <Icons.LogOut />
-          <span className="hidden sm:inline">Thoát</span>
-        </button>
-      </div>
+<div class="container">
+    <div id="quiz-ui">
+        <h1 style="text-align:center; color: #1e293b;">BÀI KIỂM TRA ĐỊNH KỲ CÔNG NGHỆ 11</h1>
+        <div id="content"></div>
+        <button class="btn" id="submit-btn" onclick="grade()">NỘP BÀI KIỂM TRA</button>
     </div>
-  );
 
-  // --- MAIN RENDER LOGIC ---
-
-  // 1. Login View
-  if (currentView === 'login') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center p-4 font-sans">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md transform transition-all hover:scale-105 duration-300">
-          <div className="text-center mb-8">
-            <div className="bg-blue-100 p-4 rounded-full w-20 h-20 mx-auto flex items-center justify-center mb-4">
-              <span className="text-4xl">🎓</span>
-            </div>
-            <h1 className="text-3xl font-bold text-gray-800">Góc Học Tập</h1>
-            <p className="text-gray-500 mt-2">Vui lòng nhập thông tin để bắt đầu</p>
-          </div>
-          
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Họ và Tên</label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="Ví dụ: Nguyễn Văn A"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Lớp Học</label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                placeholder="Ví dụ: 5A"
-                value={formData.classRoom}
-                onChange={(e) => setFormData({...formData, classRoom: e.target.value})}
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg hover:shadow-xl transform active:scale-95"
-            >
-              Vào Học Ngay
-            </button>
-          </form>
+    <div id="res-ui" class="res-area">
+        <div class="score-card">
+            <h2>KẾT QUẢ CỦA BẠN</h2>
+            <div class="score-num" id="score-val">0/10</div>
+            <p id="stats-val" style="font-size: 1.2rem;"></p>
+            <button onclick="location.reload()" style="padding:10px 25px; cursor:pointer; border-radius:8px; border:1px solid #ccc; background: white;">Làm đề mới</button>
         </div>
-      </div>
-    );
-  }
+        <h2 style="border-bottom: 2px solid var(--p); padding-bottom: 10px;">XEM LẠI CHI TIẾT CÂU HỎI</h2>
+        <div id="review-list"></div>
+    </div>
+</div>
 
-  // 2. Dashboard View
-  if (currentView === 'dashboard') {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Hôm nay bạn muốn làm gì?</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1: Lý thuyết */}
-            <div 
-              onClick={() => setCurrentView('theory')}
-              className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-2 border-b-4 border-blue-500 group"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="p-4 bg-blue-50 rounded-full mb-4 group-hover:bg-blue-100 transition-colors">
-                  <Icons.Book />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Lý Thuyết</h3>
-                <p className="text-gray-500 text-sm">Ôn tập kiến thức và bài học mới.</p>
-              </div>
-            </div>
+<script>
+// --- DỮ LIỆU ĐÃ MÃ HÓA BASE64 ---
+const BANK_A = [
+    {q: "Vai trò của cơ khí chế tạo trong ngành giao thông vận tải được thể hiện qua sản phẩm nào?", a: ["Máy chụp cộng hưởng từ (MRI)", "Hệ thống tưới tiêu tự động", "Động cơ ô tô, xe máy", "Máy xay xát lúa gạo"], c: "Mg=="},
+    {q: "Trong một dây chuyền sản xuất ô tô, ai là người trực tiếp lắp đặt động cơ vào khung xe?", a: ["Công nhân lắp ráp cơ khí", "Giám đốc nhà máy", "Kỹ sư thiết kế kiểu dáng xe", "Nhân viên bảo vệ nhà máy"], c: "MA=="},
+    {q: "Một trong những tính chất hoá học của vật liệu cơ khí là", a: ["tính cứng", "tính dẫn điện", "tính dẫn nhiệt", "tính chịu ăn mòn"], c: "Mw=="},
+    {q: "Tính chất nào sau đây đặc trưng cho khả năng chống lại biến dạng dẻo hay phá hủy của kim loại dưới tác dụng của ngoại lực?", a: ["Tính dẫn nhiệt", "Tính đúc", "Độ bền (tính bền)", "Khối lượng riêng"], c: "Mg=="},
+    {q: "Vật liệu nào có thể ghi nhớ được hình dạng ban đầu của nó?", a: ["Vật liệu có cơ tính biến thiên", "Nano", "Hợp kim nhớ hình", "Vật liệu kim loại và hợp kim"], c: "Mg=="},
+    {q: "Phương pháp nào sau đây thuộc nhóm “Gia công có phoi” (gia công cắt gọt)?", a: ["Tiện", "Đúc", "Rèn", "Hàn"], c: "MA=="},
+    {q: "Ưu điểm của công nghệ chế tạo phôi bằng phương pháp hàn?", a: ["Mối hàn kém bền", "Mối hàn hở", "Dễ cong vênh", "Tiết kiệm kim loại"], c: "Mw=="},
+    {q: "Trên máy tiện vạn năng, chi tiết gắn dao khi tiện là", a: ["mâm cặp", "ụ động", "bàn gá dao", "hộp tốc độ"], c: "Mg=="},
+    {q: "Sắp xếp các giai đoạn sau đúng với trình tự của quá trình sản xuất cơ khí?", a: ["Chế tạo phôi -> Gia công -> xử lí và bảo vệ -> lắp ráp -> đóng gói", "Gia công -> chế tạo phôi -> kiểm tra -> lắp ráp -> đóng gói", "Gia công -> chế tạo phôi -> lắp ráp -> kiểm tra -> đóng gói", "Chế tạo phôi -> Gia công -> lắp ráp -> kiểm tra -> đóng gói"], c: "MA=="},
+    {q: "Bước “Xử lý và bảo vệ bề mặt” bao gồm các hoạt động nào sau đây?", a: ["Tiện, phay, bào, khoan", "Đúc, rèn, dập", "Sơn, mạ, phủ hóa chất chống ăn mòn", "Lắp ráp bu lông, đai ốc"], c: "Mg=="},
+    {q: "Robot công nghiệp là thiết bị tự động có khả năng gì nổi bật nhất?", a: ["Tự động suy nghĩ như con người", "Thực hiện các thao tác theo chương trình được lập trình sẵn", "Di chuyển với tốc độ ánh sáng", "Tự sửa chữa khi bị hỏng hóc"], c: "MQ=="},
+    {q: "Một dây chuyền đóng gói thực phẩm tự động sử dụng robot để xếp thùng carton lên pallet. Đây là ứng dụng của robot trong công đoạn nào?", a: ["Gia công", "Lắp ráp", "Kiểm tra", "Vận chuyển và xếp dỡ"], c: "Mw=="}
+];
 
-            {/* Card 2: Kiểm tra */}
-            <div 
-              onClick={() => setCurrentView('quiz')}
-              className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-2 border-b-4 border-green-500 group"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="p-4 bg-green-50 rounded-full mb-4 group-hover:bg-green-100 transition-colors">
-                   <Icons.Check />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Kiểm Tra</h3>
-                <p className="text-gray-500 text-sm">Thử sức với các bài trắc nghiệm vui.</p>
-              </div>
-            </div>
+const BANK_B = [
+    {q: "Nghề nghiệp trong lĩnh vực cơ khí gắn với những công việc nào? Chọn đáp án đúng nhất", a: ["Thiết kế sản phẩm cơ khí; Gia công cơ khí; Bảo dưỡng thiết bị cơ khí", "Thiết kế sản phẩm cơ khí; Lắp ráp sản phẩm cơ khí; Bảo dưỡng thiết bị cơ khí", "Thiết kế sản phẩm cơ khí; Gia công cơ khí; Lắp ráp sản phẩm cơ khí; Bảo dưỡng và sửa chữa thiết bị cơ khí", "Thiết kế sản phẩm cơ khí; Lắp ráp sản phẩm cơ khí; Bảo dưỡng và sửa chữa thiết bị cơ khí"], c: "Mg=="},
+    {q: "Nghề nghiệp trong lĩnh vực cơ khí không bao gồm công việc nào dưới đây?", a: ["Thiết kế sản phẩm cơ khí", "Gia công cơ khí", "Lắp ráp sản phẩm cơ khí", "Lên kế hoạch kinh doanh sản phẩm cơ khí"], c: "Mw=="},
+    {q: "Gia công cơ khí là gì?", a: ["là quá trình chế tạo sản phẩm cơ khí", "là quá trình nghiên cứu, thiết kế tính toán kích thước", "là giai đoạn cuối cùng của quá trình sản xuất", "là công việc chăm sóc, thực hiện kiểm tra"], c: "MA=="},
+    {q: "Phân loại theo công nghệ gia công gồm:", a: ["Gia công cơ khí không phoi và gia công cơ khí có phoi", "Gia công cơ khí không phoi và gia công cơ khí truyền thống", "Gia công cơ khí truyền thống và gia công cơ khí có phoi", "Gia công cơ khí truyền thống và gia công cơ khí hiện đại"], c: "MA=="},
+    {q: "Gia công cơ khí không phoi là quá trình", a: ["Gia công bằng tia lửa điện", "Gia công mà có một lượng vật liệu bị cắt gọt bỏ đi", "Gia công mà khối lượng vật liệu vẫn được giữ nguyên", "Gia công bằng siêu âm"], c: "Mg=="},
+    {q: "Gia công cơ khí có phoi là quá trình", a: ["Gia công bằng tia lửa điện", "Gia công mà có một lượng vật liệu bị cắt gọt bỏ đi", "Gia công mà khối lượng vật liệu vẫn được giữ nguyên", "Gia công bằng siêu âm"], c: "MQ=="},
+    {q: "Sản phẩm của gia công cơ khí có phoi là:", a: ["Các chi tiết được chế tạo theo bản thiết kế", "Các sản phẩm thô nhẵn bề mặt thấp", "Vật liệu phôi ban đầu", "Máy móc xây dựng"], c: "MA=="},
+    {q: "Dụng cụ nào dùng để kẹp chặt phôi khi gia công trên máy tiện?", a: ["Ụ động", "Mâm cặp", "Bàn gá dao", "Trục chính"], c: "MQ=="}
+];
 
-            {/* Card 3: Khám phá */}
-            <div 
-              onClick={() => setCurrentView('explore')}
-              className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer transform hover:-translate-y-2 border-b-4 border-purple-500 group"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="p-4 bg-purple-50 rounded-full mb-4 group-hover:bg-purple-100 transition-colors">
-                  <Icons.Compass />
-                </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Khám Phá</h3>
-                <p className="text-gray-500 text-sm">Tìm hiểu những điều thú vị quanh ta.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+// --- CẬP NHẬT DỮ LIỆU PHẦN 2 TỪ FILE P2.DOCX ---
+const BANK_P2 = [
+    {q: "Một nhóm học sinh thực hiện lập quy trình công nghệ gia công chi tiết như hình 9.11 SGK trang 48. Những nhận định nào sau đây là đúng?", a: ["Tiện trụ 25 dài 25 mm thực hiện dao đầu cong, vát mép thực hiện dao vai. ", "Khi thực hiện gia công chi tiết cần chọn phương pháp tiện là phù hợp nhất. ", "Đường kính phôi phải lớn hơn đường kính lớn nhất của chi tiết, chiều dài phôi phải nhỏ hơn chiều dài chi tiết. ", "Để thực hiện gia công chi tiết cần chọn thiết bị, đồ gá, dụng cụ gia công, bậc thợ, chế độ cắt. "], c: "WzEsIDNd"},
+    {q: "Giả sử chúng ta cần gia công một bánh răng thép nhỏ dùng trong hộp số xe máy, những phương pháp nào sau đây là phù hợp?", a: ["Để gia công được bánh răng như hình bên cần dùng phương pháp gia công cơ khí không phoi. ", "Khi thực hiện gia công lỗ trên bánh răng cần cố định phôi, mũi khoan sẽ chuyển động quay và tịnh tiến. ", "Dùng máy phay vạn năng để tạo các rãnh răng (hay còn gọi là biên dạng răng) trên bánh răng. ", "Đúc bánh răng bằng khuôn cát, sau đó có thể lắp trực tiếp vào máy. "], c: "WzEsIDJd"},
+    {q: "Dựa vào kiến thức về vật liệu cơ khí, nhận định nào sau đây về cao su là chính xác?", a: ["Cao su dẫn điện và dẫn nhiệt tốt nên thường dùng làm dây dẫn. ", "Cao su có hai loại chính là cao su thiên nhiên (tổng hợp từ công nghệ hóa học) và cao su nhân tạo (lấy từ nhựa cây cao su). ", "Cao su nhân tạo có tính chất kém hơn hoàn toàn so với cao su thiên nhiên. ", "Cao su được xếp vào nhóm vật liệu phi kim loại, có tính đàn hồi tốt. "], c: "WzNd"},
+    {q: "Giáo viên giới thiệu 4 mẫu vật: thép carbon, vỏ xe đạp, tấm gốm và composite. Nhận định nào sau đây là đúng?", a: ["Để bốn sản phẩm trên đáp ứng yêu cầu làm việc về tính sử dụng thì chúng phải có các tính chất: cơ học, vật lí, hoá học. ", "Mảnh vật liệu composite (cốt sợi thủy tinh) thuộc nhóm vật liệu mới. ", "Vỏ xe đạp làm bằng cao su nên thuộc nhóm vật liệu kim loại. ", "Tấm gốm cách điện thuộc nhóm vật liệu phi kim loại. "], c: "WzAsIDEsIDNd"}
+];
 
-  // 3. Theory View
-  if (currentView === 'theory') {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans">
-        <Header />
-        <div className="max-w-3xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="text-3xl">📚</span> Góc Lý Thuyết
-          </h2>
-          <div className="space-y-4">
-            {DATA.theories.map((theory) => (
-              <div key={theory.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl p-2 bg-gray-50 rounded-xl">{theory.icon}</div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2">{theory.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{theory.content}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+let examData = [];
+let timerVal = 15 * 60;
+let countdown;
 
-  // 4. Quiz View
-  if (currentView === 'quiz') {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans">
-        <Header />
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="text-3xl">✍️</span> Bài Kiểm Tra Nhanh
-          </h2>
-
-          {!showResult ? (
-            <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-              <div className="bg-blue-600 px-6 py-4 flex justify-between items-center text-white">
-                <span className="font-bold">Câu hỏi {currentQuestion + 1}/{DATA.quiz.length}</span>
-                <span className="bg-blue-500 px-3 py-1 rounded-full text-sm">Điểm: {score}</span>
-              </div>
-              <div className="p-8">
-                <h3 className="text-xl font-bold text-gray-800 mb-8">{DATA.quiz[currentQuestion].question}</h3>
-                <div className="space-y-3">
-                  {DATA.quiz[currentQuestion].options.map((option, index) => (
-                    <button
-                      key={index}
-                      disabled={selectedOption !== null}
-                      onClick={() => handleAnswer(index)}
-                      className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium flex justify-between items-center
-                        ${selectedOption === index 
-                          ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                          : 'border-gray-100 hover:border-blue-300 hover:bg-gray-50 text-gray-600'
-                        }`}
-                    >
-                      {option}
-                      {selectedOption === index && <span className="text-blue-500">Selected</span>}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-3xl shadow-lg p-8 text-center animate-fade-in">
-              <div className="text-6xl mb-4">🏆</div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">Hoàn Thành!</h3>
-              <p className="text-gray-500 mb-6">Bạn đã trả lời đúng <strong className="text-blue-600 text-xl">{score}/{DATA.quiz.length}</strong> câu hỏi.</p>
-              
-              <div className="w-full bg-gray-200 rounded-full h-4 mb-8">
-                <div 
-                  className="bg-blue-600 h-4 rounded-full transition-all duration-1000" 
-                  style={{ width: `${(score / DATA.quiz.length) * 100}%` }}
-                ></div>
-              </div>
-
-              <button
-                onClick={resetQuiz}
-                className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-lg"
-              >
-                Làm lại bài
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // 5. Explore View
-  if (currentView === 'explore') {
-    return (
-      <div className="min-h-screen bg-gray-50 font-sans">
-        <Header />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-            <span className="text-3xl">🚀</span> Khám Phá Thế Giới
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {DATA.explore.map((item, index) => (
-              <div key={index} className={`p-6 rounded-2xl border-l-8 shadow-sm hover:shadow-md transition-all ${item.color.replace('text-', 'border-')}`}>
-                <div className="flex items-center mb-3">
-                  <span className="text-2xl mr-3">💡</span>
-                  <h3 className={`font-bold text-lg ${item.color.split(' ')[2]}`}>{item.title}</h3>
-                </div>
-                <p className="text-gray-700 leading-relaxed">
-                  {item.text}
-                </p>
-              </div>
-            ))}
-            
-            {/* Interactive Element Placeholder */}
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 rounded-2xl text-white shadow-lg flex flex-col justify-center items-center text-center col-span-1 md:col-span-2">
-               <span className="text-4xl mb-4">🌌</span>
-               <h3 className="font-bold text-xl mb-2">Hũ Kiến Thức Bí Ẩn</h3>
-               <p className="opacity-90 mb-4">Bấm vào đây để nhận một kiến thức ngẫu nhiên!</p>
-               <button 
-                onClick={() => alert("🐧 Chim cánh cụt có thể nhảy cao tới 1.8 mét!")}
-                className="bg-white text-indigo-600 px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all"
-               >
-                 Mở ra xem
-               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+function startTimer() {
+    countdown = setInterval(() => {
+        timerVal--;
+        let mins = Math.floor(timerVal/60), secs = timerVal%60;
+        document.getElementById('timer').innerText = `THỜI GIAN CÒN LẠI: ${mins}:${secs<10?'0':''}${secs}`;
+        if(timerVal <= 0) { clearInterval(countdown); alert("Hết giờ làm bài!"); grade(); }
+    }, 1000);
 }
+
+function initQuiz() {
+    const sA = BANK_A.sort(() => Math.random()-0.5).slice(0, 6);
+    const sB = BANK_B.sort(() => Math.random()-0.5).slice(0, 6);
+    const sP2 = BANK_P2.sort(() => Math.random()-0.5).slice(0, 4);
+
+    const part1 = [...sA, ...sB].sort(() => Math.random()-0.5);
+    examData = [...part1, ...sP2].map(item => {
+        const correctRaw = JSON.parse(atob(item.c));
+        const isMulti = Array.isArray(correctRaw);
+        let opts = item.a.map((txt, i) => ({ txt, isC: isMulti ? correctRaw.includes(i) : i === correctRaw }));
+        opts.sort(() => Math.random()-0.5);
+        return { q: item.q, type: isMulti?'multi':'single', options: opts };
+    });
+
+    let html = '';
+    examData.forEach((q, i) => {
+        if(i===0) html += `<div class="section-header">PHẦN 1: CÂU HỎI CÓ 1 ĐÁP ÁN ĐÚNG (12 Câu)</div>`;
+        if(i===12) html += `<div class="section-header">PHẦN 2: CÂU HỎI CÓ NHIỀU PHƯƠNG ÁN TRẢ LỜI (4 Câu)</div>`;
+        html += `<div class="q-box">
+            <p><strong>Câu ${i+1}:</strong> ${q.q}</p>
+            ${q.options.map((o, oi) => `
+                <label class="opt">
+                    <input type="${q.type==='single'?'radio':'checkbox'}" name="q${i}" value="${oi}">
+                    ${o.txt}
+                </label>
+            `).join('')}
+        </div>`;
+    });
+    document.getElementById('content').innerHTML = html;
+    startTimer();
+}
+
+function grade() {
+    clearInterval(countdown);
+    document.getElementById('timer').style.display = 'none';
+    let correctTotal = 0;
+    let reviewHtml = '';
+
+    examData.forEach((q, i) => {
+        const selected = Array.from(document.querySelectorAll(`input[name="q${i}"]:checked`)).map(e => parseInt(e.value));
+        const correctIndices = q.options.map((o, oi) => o.isC ? oi : null).filter(v => v !== null);
+        
+        let isRight = (q.type === 'single') 
+            ? (selected.length === 1 && q.options[selected[0]].isC)
+            : (JSON.stringify(selected.sort()) === JSON.stringify(correctIndices.sort()));
+
+        if(isRight) correctTotal++;
+
+        reviewHtml += `<div class="review-q-item">
+            <span class="status-tag" style="color:${isRight? 'var(--s)':'var(--e)'}">${isRight?'✅ ĐÚNG':'❌ SAI'}</span>
+            <p><strong>Câu ${i+1}: ${q.q}</strong></p>
+            <div class="review-opts">
+                ${q.options.map((o, oi) => {
+                    let cls = '';
+                    let label = '';
+                    if (o.isC) {
+                        cls = 'opt-correct';
+                        label = ' (Đáp án đúng)';
+                    } else if (selected.includes(oi)) {
+                        cls = 'opt-wrong';
+                        label = ' (Bạn chọn sai)';
+                    }
+                    return `<div class="review-opt ${cls}">${o.isC ? '●' : '○'} ${o.txt}${label}</div>`;
+                }).join('')}
+            </div>
+        </div>`;
+    });
+
+    document.getElementById('quiz-ui').style.display = 'none';
+    document.getElementById('res-ui').style.display = 'block';
+    document.getElementById('score-val').innerText = ((correctTotal/16)*10).toFixed(1) + "/10";
+    document.getElementById('stats-val').innerText = `Kết quả: Đúng ${correctTotal} trên 16 câu.`;
+    document.getElementById('review-list').innerHTML = reviewHtml;
+    window.scrollTo(0,0);
+}
+
+window.onload = initQuiz;
+</script>
+</body>
+</html>
+
