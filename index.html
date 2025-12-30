@@ -109,10 +109,20 @@ const Icons = {
 };
 
 export default function App() {
+  // --- STATE DECLARATIONS ---
+  // IMPORTANT: All useState hooks must be at the top level, never inside if/else blocks
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('login'); // login, dashboard, theory, quiz, explore
   const [formData, setFormData] = useState({ name: '', classRoom: '' });
 
+  // Quiz State (Moved here to fix React Hook Rules)
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
+
+  // --- HANDLERS ---
+  
   // Login handler
   const handleLogin = (e) => {
     e.preventDefault();
@@ -122,7 +132,75 @@ export default function App() {
     }
   };
 
-  // Render Login Screen
+  // Quiz Logic Handlers
+  const handleAnswer = (optionIndex) => {
+    setSelectedOption(optionIndex);
+    
+    // Delay to show selection effect before moving next
+    setTimeout(() => {
+      if (optionIndex === DATA.quiz[currentQuestion].correct) {
+        setScore(prevScore => prevScore + 1);
+      }
+      
+      if (currentQuestion + 1 < DATA.quiz.length) {
+        setCurrentQuestion(prevQ => prevQ + 1);
+        setSelectedOption(null);
+      } else {
+        setShowResult(true);
+      }
+    }, 500);
+  };
+
+  const resetQuiz = () => {
+    setCurrentQuestion(0);
+    setScore(0);
+    setShowResult(false);
+    setSelectedOption(null);
+  };
+
+  // --- RENDER HELPERS ---
+
+  // Header Component
+  const Header = () => (
+    <div className="bg-white shadow-sm sticky top-0 z-10">
+      <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          {currentView !== 'dashboard' && (
+            <button 
+              onClick={() => setCurrentView('dashboard')}
+              className="p-2 hover:bg-gray-100 rounded-full mr-2 transition-colors"
+            >
+              <Icons.Back />
+            </button>
+          )}
+          <div className="flex flex-col">
+            <span className="font-bold text-gray-800 text-lg flex items-center gap-2">
+               Xin chào, {user.name}
+            </span>
+            <span className="text-xs text-gray-500 font-medium bg-blue-100 px-2 py-0.5 rounded-full w-fit">
+              Lớp {user.classRoom}
+            </span>
+          </div>
+        </div>
+        <button 
+          onClick={() => {
+            setUser(null);
+            setCurrentView('login');
+            setFormData({ name: '', classRoom: '' });
+            resetQuiz(); // Reset quiz state on logout
+          }}
+          className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
+        >
+          <Icons.LogOut />
+          <span className="hidden sm:inline">Thoát</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  // --- MAIN RENDER LOGIC ---
+
+  // 1. Login View
   if (currentView === 'login') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center p-4 font-sans">
@@ -170,44 +248,7 @@ export default function App() {
     );
   }
 
-  // Header Component (used in all internal pages)
-  const Header = () => (
-    <div className="bg-white shadow-sm sticky top-0 z-10">
-      <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          {currentView !== 'dashboard' && (
-            <button 
-              onClick={() => setCurrentView('dashboard')}
-              className="p-2 hover:bg-gray-100 rounded-full mr-2 transition-colors"
-            >
-              <Icons.Back />
-            </button>
-          )}
-          <div className="flex flex-col">
-            <span className="font-bold text-gray-800 text-lg flex items-center gap-2">
-               Xin chào, {user.name}
-            </span>
-            <span className="text-xs text-gray-500 font-medium bg-blue-100 px-2 py-0.5 rounded-full w-fit">
-              Lớp {user.classRoom}
-            </span>
-          </div>
-        </div>
-        <button 
-          onClick={() => {
-            setUser(null);
-            setCurrentView('login');
-            setFormData({ name: '', classRoom: '' });
-          }}
-          className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex items-center gap-2 text-sm font-medium"
-        >
-          <Icons.LogOut />
-          <span className="hidden sm:inline">Thoát</span>
-        </button>
-      </div>
-    </div>
-  );
-
-  // Render Dashboard
+  // 2. Dashboard View
   if (currentView === 'dashboard') {
     return (
       <div className="min-h-screen bg-gray-50 font-sans">
@@ -263,7 +304,7 @@ export default function App() {
     );
   }
 
-  // Render Theory View
+  // 3. Theory View
   if (currentView === 'theory') {
     return (
       <div className="min-h-screen bg-gray-50 font-sans">
@@ -290,38 +331,8 @@ export default function App() {
     );
   }
 
-  // Render Quiz View
+  // 4. Quiz View
   if (currentView === 'quiz') {
-    const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [score, setScore] = useState(0);
-    const [showResult, setShowResult] = useState(false);
-    const [selectedOption, setSelectedOption] = useState(null);
-
-    const handleAnswer = (optionIndex) => {
-      setSelectedOption(optionIndex);
-      
-      // Delay to show selection effect before moving next
-      setTimeout(() => {
-        if (optionIndex === DATA.quiz[currentQuestion].correct) {
-          setScore(score + 1);
-        }
-        
-        if (currentQuestion + 1 < DATA.quiz.length) {
-          setCurrentQuestion(currentQuestion + 1);
-          setSelectedOption(null);
-        } else {
-          setShowResult(true);
-        }
-      }, 500);
-    };
-
-    const resetQuiz = () => {
-      setCurrentQuestion(0);
-      setScore(0);
-      setShowResult(false);
-      setSelectedOption(null);
-    };
-
     return (
       <div className="min-h-screen bg-gray-50 font-sans">
         <Header />
@@ -383,7 +394,7 @@ export default function App() {
     );
   }
 
-  // Render Explore View
+  // 5. Explore View
   if (currentView === 'explore') {
     return (
       <div className="min-h-screen bg-gray-50 font-sans">
