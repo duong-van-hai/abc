@@ -11,31 +11,63 @@
         .container { max-width: 850px; margin: 80px auto 40px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         .section-header { background: #eff6ff; color: var(--p); padding: 15px; border-radius: 8px; margin: 30px 0 20px; border-left: 6px solid var(--p); font-size: 1.2rem; font-weight: bold; text-transform: uppercase; }
         .q-box { margin-bottom: 30px; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
-        .q-box img { max-width: 100%; height: auto; margin: 15px auto; display: block; border-radius: 8px; border: 1px solid #e2e8f0; }
+        
+        /* CSS ẢNH */
+        .q-box img { 
+            width: 100%; max-width: 650px; height: auto; 
+            margin: 20px auto; display: block; 
+            border-radius: 8px; border: 2px solid #e2e8f0; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: #fff; padding: 5px;
+            cursor: zoom-in; transition: transform 0.2s;
+        }
+        .q-box img:hover { border-color: var(--p); }
+
         .opt { display: flex; align-items: center; padding: 12px; border: 1px solid #f1f5f9; margin: 8px 0; border-radius: 6px; cursor: pointer; transition: 0.2s; }
         .opt:hover { background: #f8fafc; border-color: var(--p); }
         input { margin-right: 15px; transform: scale(1.3); cursor: pointer; }
         .btn { width: 100%; padding: 20px; background: var(--p); color: white; border: none; border-radius: 10px; font-size: 1.3rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .btn:hover { background: #1d4ed8; transform: translateY(-2px); }
         
-        /* Kết quả & Review */
+        /* KẾT QUẢ */
         .res-area { display: none; }
         .score-card { text-align: center; padding: 40px; border-radius: 15px; background: #f0fdf4; border: 2px solid var(--s); margin-bottom: 30px; }
         .score-num { font-size: 4rem; color: var(--p); font-weight: 800; margin: 10px 0; }
+        
+        /* REVIEW STYLE MỚI */
         .review-q-item { background: #fff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .review-opt { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #eee; font-size: 0.95rem; }
-        .opt-correct { background: #dcfce7; border-color: var(--s); color: #166534; font-weight: bold; }
-        .opt-wrong { background: #fee2e2; border-color: var(--e); color: #991b1b; }
-        .status-tag { font-weight: bold; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 10px; display: block; }
+        .review-opt { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #eee; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        .opt-correct-choice { background: #dcfce7; border-color: var(--s); color: #166534; font-weight: bold; } /* Đúng và đã chọn */
+        .opt-wrong-choice { background: #fee2e2; border-color: var(--e); color: #991b1b; } /* Sai mà lại chọn */
+        .opt-missed { background: #fef9c3; border-color: #ca8a04; color: #854d0e; } /* Đúng mà không chọn */
+        
+        .point-tag { font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 10px; white-space: nowrap; }
+        .p-gain { background: #16a34a; color: white; }
+        .p-loss { background: #dc2626; color: white; }
+        .p-neutral { background: #94a3b8; color: white; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 2000; padding-top: 50px; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); }
+        .modal-content { margin: auto; display: block; width: 90%; max-width: 1200px; border-radius: 5px; animation: zoom 0.3s; background: white; }
+        @keyframes zoom {from {transform:scale(0)} to {transform:scale(1)}}
+        .close-modal { position: fixed; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; transition: 0.3s; cursor: pointer; }
+        .close-modal:hover { color: #bbb; text-decoration: none; cursor: pointer; }
     </style>
 </head>
 <body>
+
+<div id="imgModal" class="modal" onclick="closeModal()">
+  <span class="close-modal">&times;</span>
+  <img class="modal-content" id="img01">
+</div>
 
 <div class="timer-bar" id="timer">THỜI GIAN CÒN LẠI: 15:00</div>
 
 <div class="container">
     <div id="quiz-ui">
         <h1 style="text-align:center; color: #1e293b;">BÀI KIỂM TRA ĐỊNH KỲ CÔNG NGHỆ 11</h1>
+        <p style="text-align: center; color: var(--p); font-style: italic;">(Gợi ý: Bấm vào hình ảnh để phóng to)</p>
         <div id="content"></div>
         <button class="btn" id="submit-btn" onclick="grade()">NỘP BÀI KIỂM TRA</button>
     </div>
@@ -43,17 +75,17 @@
     <div id="res-ui" class="res-area">
         <div class="score-card">
             <h2>KẾT QUẢ CỦA BẠN</h2>
-            <div class="score-num" id="score-val">0/10</div>
+            <div class="score-num" id="score-val">0/7</div>
             <p id="stats-val" style="font-size: 1.2rem;"></p>
             <button onclick="location.reload()" style="padding:10px 25px; cursor:pointer; border-radius:8px; border:1px solid #ccc; background: white;">Làm đề mới</button>
         </div>
-        <h2 style="border-bottom: 2px solid var(--p); padding-bottom: 10px;">XEM LẠI CHI TIẾT CÂU HỎI</h2>
+        <h2 style="border-bottom: 2px solid var(--p); padding-bottom: 10px;">CHI TIẾT ĐIỂM SỐ</h2>
         <div id="review-list"></div>
     </div>
 </div>
 
 <script>
-// --- DỮ LIỆU ĐÃ MÃ HÓA BASE64 ---
+// --- DỮ LIỆU ---
 const BANK_A = [
     {q: "Vai trò của cơ khí chế tạo trong ngành giao thông vận tải được thể hiện qua sản phẩm nào?", a: ["Máy chụp cộng hưởng từ (MRI)", "Hệ thống tưới tiêu tự động", "Động cơ ô tô, xe máy", "Máy xay xát lúa gạo"], c: "Mg=="},
     {q: "Trong một dây chuyền sản xuất ô tô, ai là người trực tiếp lắp đặt động cơ vào khung xe?", a: ["Công nhân lắp ráp cơ khí", "Giám đốc nhà máy", "Kỹ sư thiết kế kiểu dáng xe", "Nhân viên bảo vệ nhà máy"], c: "MA=="},
@@ -80,19 +112,16 @@ const BANK_B = [
     {q: "Dụng cụ nào dùng để kẹp chặt phôi khi gia công trên máy tiện?", a: ["Ụ động", "Mâm cặp", "Bàn gá dao", "Trục chính"], c: "MQ=="}
 ];
 
-// --- CẬP NHẬT DỮ LIỆU PHẦN 2 (ĐÃ CHỈNH SỬA CÂU 1) ---
-// Câu 1 đã được cập nhật nội dung và trỏ đến file ảnh 'gamatnghieng.png'
-// Đáp án C và D là đúng -> Index 2 và 3 -> Mã Base64: "WzIsIDNd"
 const BANK_P2 = [
     {
-        q: 'Cho hình biểu diễn của vật thể như hình vẽ dưới đây:<br><img src="gamatnghieng.png" alt="Hinh ve ky thuat"><br>Có các nhận định như sau:', 
+        q: 'Cho hình biểu diễn của vật thể như hình vẽ dưới đây:<br><img src="gamatnghieng.png" alt="Hinh ve ky thuat" onclick="enlargeImg(this)"><br>Có các nhận định như sau:', 
         a: [
             "Vật thể có một mặt nghiêng dài 9 mm, cao 15 mm.", 
             "Vật thể có chiều cao là 65 mm.", 
             "Hình chiếu cạnh chưa biểu diễn đúng vật thể.", 
             "Hình vẽ thể hiện hai loại hình biểu diễn: hình chiếu vuông góc và hình chiếu trục đo của vật thể."
         ], 
-        c: "WzIsIDNd" // [2, 3] -> Đáp án C và D đúng
+        c: "WzIsIDNd"
     },
     {q: "Giả sử chúng ta cần gia công một bánh răng thép nhỏ dùng trong hộp số xe máy, những phương pháp nào sau đây là phù hợp?", a: ["Để gia công được bánh răng như hình bên cần dùng phương pháp gia công cơ khí không phoi. ", "Khi thực hiện gia công lỗ trên bánh răng cần cố định phôi, mũi khoan sẽ chuyển động quay và tịnh tiến. ", "Dùng máy phay vạn năng để tạo các rãnh răng (hay còn gọi là biên dạng răng) trên bánh răng. ", "Đúc bánh răng bằng khuôn cát, sau đó có thể lắp trực tiếp vào máy. "], c: "WzEsIDJd"},
     {q: "Dựa vào kiến thức về vật liệu cơ khí, nhận định nào sau đây về cao su là chính xác?", a: ["Cao su dẫn điện và dẫn nhiệt tốt nên thường dùng làm dây dẫn. ", "Cao su có hai loại chính là cao su thiên nhiên (tổng hợp từ công nghệ hóa học) và cao su nhân tạo (lấy từ nhựa cây cao su). ", "Cao su nhân tạo có tính chất kém hơn hoàn toàn so với cao su thiên nhiên. ", "Cao su được xếp vào nhóm vật liệu phi kim loại, có tính đàn hồi tốt. "], c: "WzNd"},
@@ -102,6 +131,16 @@ const BANK_P2 = [
 let examData = [];
 let timerVal = 15 * 60;
 let countdown;
+
+// --- HÀM XỬ LÝ ẢNH ---
+function enlargeImg(imgElement) {
+  const modal = document.getElementById("imgModal");
+  const modalImg = document.getElementById("img01");
+  modal.style.display = "block";
+  modalImg.src = imgElement.src;
+}
+function closeModal() { document.getElementById("imgModal").style.display = "none"; }
+document.addEventListener('keydown', function(event){ if(event.key === "Escape") closeModal(); });
 
 function startTimer() {
     countdown = setInterval(() => {
@@ -115,24 +154,21 @@ function startTimer() {
 function initQuiz() {
     const sA = BANK_A.sort(() => Math.random()-0.5).slice(0, 6);
     const sB = BANK_B.sort(() => Math.random()-0.5).slice(0, 6);
-    const sP2 = BANK_P2.sort(() => Math.random()-0.5).slice(0, 4); // Lấy hết 4 câu P2
+    const sP2 = BANK_P2.sort(() => Math.random()-0.5).slice(0, 4); 
 
     const part1 = [...sA, ...sB].sort(() => Math.random()-0.5);
     examData = [...part1, ...sP2].map(item => {
         const correctRaw = JSON.parse(atob(item.c));
         const isMulti = Array.isArray(correctRaw);
         let opts = item.a.map((txt, i) => ({ txt, isC: isMulti ? correctRaw.includes(i) : i === correctRaw }));
-        // Giữ nguyên thứ tự đáp án câu 1 phần 2 để khớp với logic "A, B, C, D" trong đề bài
-        // Chỉ xáo trộn nếu không phải câu chứa hình ảnh đặc thù cần thứ tự
-        // Tuy nhiên code cũ xáo trộn tất cả, ta cứ để xáo trộn, học sinh phải đọc kỹ nội dung đáp án
-        opts.sort(() => Math.random()-0.5);
+        if(item.type !== 'multi') opts.sort(() => Math.random()-0.5); // Chỉ xáo đáp án phần 1
         return { q: item.q, type: isMulti?'multi':'single', options: opts };
     });
 
     let html = '';
     examData.forEach((q, i) => {
-        if(i===0) html += `<div class="section-header">PHẦN 1: CÂU HỎI CÓ 1 ĐÁP ÁN ĐÚNG (12 Câu)</div>`;
-        if(i===12) html += `<div class="section-header">PHẦN 2: CÂU HỎI CÓ NHIỀU PHƯƠNG ÁN TRẢ LỜI (4 Câu)</div>`;
+        if(i===0) html += `<div class="section-header">PHẦN 1: CÂU HỎI CÓ 1 ĐÁP ÁN ĐÚNG (0.25đ/câu)</div>`;
+        if(i===12) html += `<div class="section-header">PHẦN 2: ĐÚNG/SAI (Mỗi ý đúng 0.25đ)</div>`;
         html += `<div class="q-box">
             <div style="font-size:1.1rem; margin-bottom:10px;"><strong>Câu ${i+1}:</strong> ${q.q}</div>
             ${q.options.map((o, oi) => `
@@ -147,46 +183,101 @@ function initQuiz() {
     startTimer();
 }
 
+// --- HÀM CHẤM ĐIỂM MỚI (QUAN TRỌNG) ---
 function grade() {
     clearInterval(countdown);
     document.getElementById('timer').style.display = 'none';
-    let correctTotal = 0;
+    let totalScore = 0;
     let reviewHtml = '';
 
     examData.forEach((q, i) => {
         const selected = Array.from(document.querySelectorAll(`input[name="q${i}"]:checked`)).map(e => parseInt(e.value));
-        const correctIndices = q.options.map((o, oi) => o.isC ? oi : null).filter(v => v !== null);
         
-        let isRight = (q.type === 'single') 
-            ? (selected.length === 1 && q.options[selected[0]].isC)
-            : (JSON.stringify(selected.sort()) === JSON.stringify(correctIndices.sort()));
+        // --- XỬ LÝ PHẦN 1 (TRẮC NGHIỆM 1 ĐÁP ÁN) ---
+        if (q.type === 'single') {
+            const correctIndex = q.options.findIndex(o => o.isC);
+            const userCorrect = (selected.length === 1 && selected[0] === correctIndex);
+            
+            if (userCorrect) totalScore += 0.25;
 
-        if(isRight) correctTotal++;
+            // Render Review Phần 1
+            reviewHtml += `<div class="review-q-item">
+                <div style="margin-bottom:10px;"><strong>Câu ${i+1}</strong> <span class="point-tag ${userCorrect?'p-gain':'p-loss'}">${userCorrect?'+0.25đ':'0đ'}</span></div>
+                <div style="margin-bottom:10px;">${q.q.replace('onclick="enlargeImg(this)"', '')}</div>
+                <div class="review-opts">`;
+            
+            q.options.forEach((o, oi) => {
+                let cls = '';
+                if (o.isC && selected.includes(oi)) cls = 'opt-correct-choice'; // Chọn đúng
+                else if (o.isC) cls = 'opt-missed'; // Đáp án đúng nhưng ko chọn
+                else if (selected.includes(oi)) cls = 'opt-wrong-choice'; // Chọn sai
+                
+                reviewHtml += `<div class="review-opt ${cls}">
+                    <span>${selected.includes(oi) ? '☑' : '☐'} ${o.txt}</span>
+                    ${o.isC ? '<span style="color:var(--s)">✔ Đáp án</span>' : ''}
+                </div>`;
+            });
+            reviewHtml += `</div></div>`;
+        } 
+        
+        // --- XỬ LÝ PHẦN 2 (ĐÚNG/SAI NHIỀU Ý) ---
+        else {
+            let p2Score = 0;
+            let subOptionsHtml = '';
+            
+            q.options.forEach((o, oi) => {
+                const isSelected = selected.includes(oi);
+                const isCorrect = o.isC; // True (là đáp án) hay False (câu nhiễu)
+                
+                // Logic chấm điểm:
+                // 1. Đáp án là Đúng (isCorrect=True) VÀ HS Chọn (isSelected=True) -> +0.25
+                // 2. Đáp án là Sai (isCorrect=False) VÀ HS Không chọn (isSelected=False) -> +0.25
+                let gain = 0;
+                if (isCorrect === isSelected) {
+                    gain = 0.25;
+                }
+                p2Score += gain;
 
-        reviewHtml += `<div class="review-q-item">
-            <span class="status-tag" style="color:${isRight? 'var(--s)':'var(--e)'}">${isRight?'✅ ĐÚNG':'❌ SAI'}</span>
-            <div style="margin-bottom:10px;"><strong>Câu ${i+1}:</strong> ${q.q}</div>
-            <div class="review-opts">
-                ${q.options.map((o, oi) => {
-                    let cls = '';
-                    let label = '';
-                    if (o.isC) {
-                        cls = 'opt-correct';
-                        label = ' (Đáp án đúng)';
-                    } else if (selected.includes(oi)) {
-                        cls = 'opt-wrong';
-                        label = ' (Bạn chọn sai)';
-                    }
-                    return `<div class="review-opt ${cls}">${o.isC ? '●' : '○'} ${o.txt}${label}</div>`;
-                }).join('')}
-            </div>
-        </div>`;
+                // Style hiển thị
+                let rowCls = '';
+                let statusText = '';
+                
+                if (isCorrect && isSelected) { // Đúng - Chọn
+                    rowCls = 'opt-correct-choice'; statusText = '+0.25đ (Đúng)';
+                } else if (!isCorrect && !isSelected) { // Sai - Không chọn
+                    rowCls = 'opt-correct-choice'; 
+                    // Ở đây dùng màu xanh nhạt hơn để phân biệt hoặc giữ nguyên
+                    rowCls = 'border: 1px solid var(--s); background: #f0fdf4;'; 
+                    statusText = '+0.25đ (Phát hiện sai)';
+                } else if (!isCorrect && isSelected) { // Sai - Mà lại chọn
+                    rowCls = 'opt-wrong-choice'; statusText = '0đ (Sai)';
+                } else if (isCorrect && !isSelected) { // Đúng - Mà không chọn
+                    rowCls = 'opt-missed'; statusText = '0đ (Bỏ sót)';
+                }
+
+                subOptionsHtml += `<div class="review-opt" style="${typeof rowCls === 'string' && rowCls.includes(':') ? rowCls : ''}" class="${!rowCls.includes(':') ? rowCls : ''}">
+                    <span>${isSelected ? '☑' : '☐'} ${o.txt}</span>
+                    <span class="point-tag ${gain>0?'p-gain':'p-loss'}">${statusText}</span>
+                </div>`;
+            });
+
+            totalScore += p2Score;
+
+            reviewHtml += `<div class="review-q-item">
+                <div style="margin-bottom:10px;"><strong>Câu ${i+1}</strong> (Phần II) - Tổng: <span class="point-tag p-neutral">${p2Score}đ</span></div>
+                <div style="margin-bottom:10px;">${q.q.replace('onclick="enlargeImg(this)"', '')}</div>
+                <div class="review-opts">
+                    ${subOptionsHtml}
+                </div>
+            </div>`;
+        }
     });
 
     document.getElementById('quiz-ui').style.display = 'none';
     document.getElementById('res-ui').style.display = 'block';
-    document.getElementById('score-val').innerText = ((correctTotal/16)*10).toFixed(1) + "/10";
-    document.getElementById('stats-val').innerText = `Kết quả: Đúng ${correctTotal} trên 16 câu.`;
+    // Hiển thị điểm số theo thang điểm 7
+    document.getElementById('score-val').innerText = totalScore.toFixed(2) + " / 7.0";
+    document.getElementById('stats-val').innerText = `Bạn đạt ${totalScore.toFixed(2)} điểm trên thang điểm 7.`;
     document.getElementById('review-list').innerHTML = reviewHtml;
     window.scrollTo(0,0);
 }
